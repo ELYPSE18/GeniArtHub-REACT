@@ -1,0 +1,18 @@
+footer {
+    margin-top: 100px;
+    background:#000;
+    text-align: center;
+    color:#FFF;
+    padding:20px 0;
+}
+footer p {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 22px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+footer a {
+    color:#fff;
+    text-decoration: none;
+}
