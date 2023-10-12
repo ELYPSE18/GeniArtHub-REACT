@@ -7,6 +7,7 @@ function Card(props){
             <img src={props.image} alt={props.titre} />
             <Link to={`/product/${props.Id}`}>Buy {props.shorttitle}</Link>
         </article>
+        
     )
 }
 

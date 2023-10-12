@@ -45,17 +45,14 @@ function Home() {
             image={product.image}
             titre={product.titre}
             shorttitle={product.shorttitle}
+    
+
 
                
 
             />
         ))}
 
-
-
-
-
-    
 
     </section>
 </section>
