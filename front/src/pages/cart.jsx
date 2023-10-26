@@ -1,99 +1,171 @@
+
+import { useEffect, useState } from 'react';
+import { useCart } from '../components/cartContext';
+import Footer from '../components/footer'
+import Header from '../components/header'
 import '../styles/cart.css'
+import { Link } from 'react-router-dom';
+
+
+export function Cart(){
+    document.body.classList.add('page')
+    const [ totalAmount, setTotalAmount ] = useState(0)
+    // Récupérer le panier
+
+    // Fait un appel à l'api pour récupérer les produits
+    // Faire la comparaison entre les produits du panier et les produits de l'api pour récupérer le prix
+    // Afficher les produits sur le panier
+    // Mettre à jour le nombre total de produits et le montant total
+    // Mettre en place la fonction de changement de quantité
+    // Mettre en place la fonction de suppression de produit
+    // Mettre en place la fonction de commande en vérifiant si les données sont remplies correctement (regex)
+    // Récupérer le numéro de commande et l'afficher
+        const { cart, setCart } = useCart();
+    
+        const [orderData, setOrderData] = useState({
+          firstName: '',
+          lastName: '',
+          address: '',
+          city: '',
+          email: ''
+        });
+
+
+        // faire appel a la l'api en faisant une correspondance entre les produits du panier et les produits de l'api:
 
 
 
-function Cart() {
+    const totalArticles = cart.reduce((total, product) => total + product.quantity, 0);
 
-    return (
-
-
-
-
-<body class="page">
-    <header>
-        <div>
-            <a href="index.html">
-                <img src="img/logo-black.png" alt="Logo GeniArtHub version sombre"/>
-            </a>
-            <a id="carticon" href="cart.html"><img src="img/cart.svg" alt="Aller au panier"/></a>
-        </div>
-    </header>
-
-    <section>
-        <div class="row">
-            <h1>Votre Panier</h1>
-        </div>
-    </section>
-
-    <section id="cart" class="productlist">
-        <div class="products">     
-        </div>
-    </section>
-    <div id="panier">
-       
-    </div>
-
-    <div class="cart-summary">
-        <p>Total de la commande </p>
-        <span id="total-articles">0 </span> articles pour un montant de <span id="total-amount"> 0€</span>
-    </div>
     
 
-    <section class="order-form">
-        <h2>Formulaire de Commande</h2>
-        <form id="orderForm">
-            <div id="orderForm-grid">
-                <div>
-                    <label for="firstName">Prénom :</label>
-                    <input type="text" id="firstName"   name="firstName"  required/>
-                </div>
-
-                <div>
-                    <label for="lastName">Nom :</label>
-                    <input type="text" id="lastName"    name="lastName"    required/>
-                </div>
-                <div>
-                    <label for="address">Adresse :</label>
-                    <input type="text" id="address" name="address"      required/>
-                </div>
-
-                <div>
-                    <label for="city">Ville :</label>
-                    <input type="text" id="city" name="city" required/>
-                </div>
-                <div>
-                    <label for="email">Email :</label>
-                    <input type="email" id="email" name="email"     required/>
-                </div>
-            </div>
-
-           <div id="cart-div-submit"><button id="cart-submit" type="submit">Passer Commande</button></div> 
-            
-        </form>
-    </section>
 
 
 
-    <footer>
-        <p><a href="https://www.errantecreation.com/">Errante Creation</a> © 2023 - GeniArtHub</p>
-    </footer>
+    const [productDetails, setProductDetails] = useState([]);
+
+    useEffect(() => {
+        // Effectuer un fetch pour chaque produit dans le panier
+        async function getDatas (){
+            const uptatedData = [];
+
+            for (const product of cart) {
+                const response = await fetch('http://localhost:3000/api/products/' + product.id);
+                const data = await response.json();
+
+                product.image = data.image;
+                product.titre = data.titre;
+                product.price = data.declinaisons.find(format => format.taille === product.format).prix;
+
+                uptatedData.push(data);
+            }
+
+            setProductDetails(uptatedData);
+        }
+
+        getDatas()
+        // setTotalAmount(cart.reduce((total, product) => total + parseInt(product.quantity) * parseFloat(product.price), 0))
+    }, [cart]);
 
 
+document.body.classList.add('page');
 
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <p class="modal-message">Félicitations, votre commande a été passée avec succès.</p>
-        <p>Voici votre numéro de commande : <span id="order-number"></span></p>
-    </div>
-</div>
 
-    <script src="js/modal.js"></script>
-    <script src="js/numberitem.js"></script>
-    <script src="js/cart.js"></script>
-</body>
-    
-        );
+const handleRemoveClick = (id, format) =>{
+    const newCart = [...cart];
+    const productIndex = newCart.findIndex(item => item.id === id && item.format === format);
+    newCart.splice(productIndex, 1);
+    setCart(newCart);
 }
 
-export default Cart;
+// fonction pour mettre à jour la quantité
+const handleQuantityChange = (event) => {
+    const newCart = [...cart];
+    const productIndex = newCart.findIndex(item => item.id === event.target.dataset.id && item.format === event.target.dataset.format);
+    newCart[productIndex].quantity = newQuantity > 100 ? 100 : newQuantity;
+    event.target.value = newCart[productIndex].quantity
+    setCart(newCart);
+}
 
+
+
+
+
+
+
+
+    return (
+        <>
+            <Header />
+            <main className="cart">
+                <section>
+                    <h2>Votre Panier</h2>
+                    <div id="panier">
+                    {productDetails.map((product, index) => (
+                        <article key={index} className="article">
+                        <img src={product.image} alt="Titre de l'oeuvre" />
+                            <h3>{product.titre}</h3>
+                            <p>Format : {product.format}</p>
+                            <p className="price">declinaison.prix €</p>
+                            <div>
+                            <p>Quantité : </p>
+                            <input type="number" onChange={handleQuantityChange} data-id={product._id} data-format={product.format} defaultValue={product.quantity} min="1" />
+                            </div>
+                            <Link onClick={() => handleRemoveClick(product._id, product.format)} >Supprimer</Link>
+                            
+
+                        </article>
+                    ))}
+
+                    </div>
+
+                    <div className="total">
+                        <h3>Total de la commande</h3>
+                        <p id="total"><span id="totalarticle">{totalArticles}</span> articles pour un montant de <span id="montanttotal">{totalAmount}</span>€</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Formulaire de commande</h2>
+                    <form id="command">
+                        <div>
+                            <div>
+                                <label htmlFor="prenom">Prénom: </label>
+                                <input type="text" name="prenom" />
+                            </div>
+                            <div>
+                                <label htmlFor="nom">Nom: </label>
+                                <input type="text" name="nom" />
+                            </div>
+                            <div>
+                                <label htmlFor="adresse">Adresse: </label>
+                                <input type="text" name="adresse" /> 
+                            </div>
+                            <div>
+                                <label htmlFor="ville">Ville: </label>
+                                <input type="text" name="ville" />
+                            </div>
+                            <div>
+                                <label htmlFor="mail">Email: </label>
+                                <input type="text" name="mail" />
+                            </div>
+                        </div>
+
+                        <button className="button-buy" href="#">Passer commande</button>
+                    </form>
+                    
+                    
+                </section>
+            </main>
+            <Footer />
+
+            <div className="modal" id="modal">
+            <div className="modal-content">
+                <p className="modal-message">Félicitations,     votre commande a été passée avec succès.</p>
+                <p>Voici votre numéro de commande : <span   id="order-number"></span></p>
+            </div>
+            </div>
+
+        </>
+    );
+}

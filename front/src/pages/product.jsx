@@ -1,85 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useCart } from '../components/cartContext';
+import Header from '../components/header';
+import Footer from '../components/footer';
+import '../styles/styles.css';
+
 
 function Product() {
   const [productData, setProductData] = useState([]);
   const [selectedFormat, setSelectedFormat] = useState('');
   const { id } = useParams();
+  const { cart, setCart, addToCart } = useCart();
+
+
+    // const { cart, setCart } = useCart();
+  
+    // const productIndex = cart.findIndex(item => item.id === id && item.format === format);
+    // if (productIndex !== -1) {
+    //   const newCart = [...cart];
+    //   newCart[productIndex].quantity = parseInt(newCart[productIndex].quantity) + parseInt(quantity);
+    //   if (newCart[productIndex].quantity > 100) {
+    //     alert('Vous ne pouvez pas commander plus de 100 exemplaires d\'une même oeuvre');
+    //     return;
+    //   }
+    //   setCart(newCart);
+    //   return
+    // }
 
   useEffect(() => {
     // Effectuez un appel à l'API ici
     fetch('http://localhost:3000/api/products/' + id)
-      .then((response) => response.json())
-      .then((data) => setProductData(data));
+    .then((response) => response.json())
+    .then((data) => setProductData(data));
   }, [id]);
-
+  
   const handleFormatChange = (event) => {
     setSelectedFormat(event.target.value);
   };
 
+  
   useEffect(() => {
     if (selectedFormat && productData.declinaisons) {
       const selectedFormatData = productData.declinaisons.find(
         (format) => format.taille === selectedFormat
-      );
-      if (selectedFormatData) {
-        const formattedPrice = `${selectedFormatData.prix.toFixed(2)} €`;
-        document.querySelector('.showprice').textContent = formattedPrice;
+        );
+        if (selectedFormatData) {
+          const formattedPrice = `${selectedFormatData.prix.toFixed(2)} €`;
+          document.querySelector('.showprice').textContent = formattedPrice;
+        }
       }
-    }
-  }, [selectedFormat, productData.declinaisons]);
-
-
-
-
-
-
-  function addToCart(){
-    const quantity = document.querySelector('#quantity').value;
-    const format = document.querySelector('#format').value;
-    const product = {
-      id: productData._id,
-      titre: productData.titre,
-      format: format,
-      quantity: quantity,
-    };
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    cart.push(product);
-    localStorage.setItem('cart', JSON.stringify(cart));
-
-    console.log(cart);
-  }
-//    // au clic sur le bouton, on appelle la fonction addToCart et on redirige vers la page panier:
-//     document.querySelector('.button-buy').addEventListener('click', () => {
-//      addToCart();
-//      window.location.href = '/cart';
-//     });
-
-    // //on affiche le nombre d'articles dans le panier:
-    // const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    // document.querySelector('#total-articles').textContent = cart.length;
-
-    // //on affiche le montant total du panier:
-    // let total = 0;
-    // cart.forEach((product) => {
-    //   total += product.quantity * product.price;
-    // });
-    // document.querySelector('#total-amount').textContent = total.toFixed(2) + ' €';
-
+    }, [selectedFormat, productData.declinaisons]);
     
+    function addToCart2(){
+      const quantity = document.querySelector('#quantity').value;
+      const format = document.querySelector('#format').value;
+      const product = {
+        id: productData._id,
+        titre: productData.titre,
+        format: format,
+        quantity: quantity,
+      };
+   
+      // on fait les tests pour voir si le produit n'existe pas déjà, ou s'il ne dépasse pas les 100
+      const productIndex = cart.findIndex(item => item.id === id && item.format === format);
+      if (productIndex !== -1) {
+        const newCart = [...cart];
+        newCart[productIndex].quantity = parseInt(newCart[productIndex].quantity) + parseInt(quantity);
+        if (newCart[productIndex].quantity > 100) {
+          alert('Vous ne pouvez pas commander plus de 100 exemplaires d\'une même oeuvre');
+          return;
+        }
+        setCart(newCart);
+        return
+      }
+      addToCart(product);
+      
+    }
 
 
-
-
-
-
-
-
-
-
-
+document.body.classList.add('page');
 
   return !productData.declinaisons ? "Chargement" : (
+    <>
+<Header />
     <section className="detailoeuvre">
       <article>
         <figure>
@@ -102,7 +105,7 @@ function Product() {
               ))}
             </select>
           </div>
-          <a className="button-buy" onClick={addToCart} href="#">
+          <a className="button-buy" onClick={addToCart2} href="#">
             Buy {productData.shorttitle}
           </a>
         </div>
@@ -113,7 +116,9 @@ function Product() {
         <p>{productData.description}</p>
       </aside>
     </section>
-  );
+<Footer />
+    </>);
+
 }
 
-export default Product;
+export default Product
